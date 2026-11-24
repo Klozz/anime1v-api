@@ -60,14 +60,15 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentMode = 'catalog'; // 'catalog' | 'search'
   let infiniteObserver = null;
   
-  const API_KEY = "dev-anime1v-key";
+  // La clave privada nunca debe llegar al navegador.
+  // El backend se encarga de autenticar las peticiones.
+  const API_BASE = '/web-api/v1/anime';
   
   const getHeaders = () => ({
-    'Content-Type': 'application/json',
-    'x-api-key': API_KEY
+    'Content-Type': 'application/json'
   });
 
-  // --- NAVEGACIÓN Y CAMBIO DE PANTALLAS (SPA) ---
+   // --- NAVEGACIÓN Y CAMBIO DE PANTALLAS (SPA) ---
   function switchView(targetPanel) {
     if (targetPanel !== playerView) {
       stopVideoPlayer();
