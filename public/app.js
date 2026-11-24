@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
     episodesGrid.innerHTML = '<div style="grid-column:1/-1; text-align:center;">Cargando lista de capítulos...</div>';
 
     try {
-      const res = await fetch(`/api/v1/anime/info?url=${encodeURIComponent(animeUrl)}`, {
+      const res = await fetch(`/web-api/v1/anime/info?url=${encodeURIComponent(animeUrl)}`, {
         headers: getHeaders()
       });
       const responseData = await res.json();
@@ -454,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
     serversList.innerHTML = '<div style="color:var(--text-muted);">Consultando servidores de video...</div>';
 
     try {
-      const res = await fetch(`/api/v1/anime/episode?url=${encodeURIComponent(episodeUrl)}`, {
+      const res = await fetch(`/web-api/v1/anime/episode?url=${encodeURIComponent(episodeUrl)}`, {
         headers: getHeaders()
       });
       const responseData = await res.json();
@@ -515,7 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlsArray = supportedServers.map(s => s.url);
 
     try {
-      const res = await fetch(`/api/v1/anime/resolve?urls=${encodeURIComponent(JSON.stringify(urlsArray))}`, {
+      const res = await fetch(`/web-api/v1/anime/resolve?urls=${encodeURIComponent(JSON.stringify(urlsArray))}`, {
         headers: getHeaders()
       });
       const responseData = await res.json();
@@ -618,7 +618,7 @@ document.addEventListener('DOMContentLoaded', () => {
     stopVideoPlayer();
 
     try {
-      const res = await fetch(`/api/v1/anime/resolve?url=${encodeURIComponent(embedUrl)}`, {
+      const res = await fetch(`/web-api/v1/anime/resolve?url=${encodeURIComponent(embedUrl)}`, {
         headers: getHeaders()
       });
       const responseData = await res.json();
