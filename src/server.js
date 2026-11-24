@@ -54,6 +54,24 @@ app.get("/health", (_req, res) => {
 app.use("/api/v1/anime", animeRoutes);
 app.use("/api/anime1v", animeRoutes);
 
+app.use(
+  "/web-api/v1/anime",
+  (req, res, next) => {
+    const webApiKey = process.env.WEB_APP_API_KEY;
+
+    if (!webApiKey) {
+      return res.status(500).json({
+        success: false,
+        message: "WEB_APP_API_KEY no está configurada"
+      });
+    }
+
+    req.headers["x-api-key"] = webApiKey;
+    next();
+  },
+  animeRoutes
+);
+
 app.use((_req, _res, next) => {
   next(new ApiError(404, "Endpoint no encontrado"));
 });
