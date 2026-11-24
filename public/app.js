@@ -80,9 +80,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (!response.ok) {
-      throw new Error(`API HTTP ${response.status}`);
-    }
-
+        const errorText = await response.text();
+        console.error(`[API] ${endpoint} HTTP ${response.status}:`, errorText);
+        throw new Error(`API HTTP ${response.status}`);
+      }
+     
     return response.json();
   };
 
@@ -94,9 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   
   const getHeaders = () => ({
-    'Content-Type': 'application/json',
-    'x-api-key': API_KEY
-  });
+     'Accept': 'application/json'
+   });
 
   // --- NAVEGACIÓN Y CAMBIO DE PANTALLAS (SPA) ---
   function switchView(targetPanel) {
