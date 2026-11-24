@@ -60,15 +60,45 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentMode = 'catalog'; // 'catalog' | 'search'
   let infiniteObserver = null;
   
-  // La clave privada nunca debe llegar al navegador.
-  // El backend se encarga de autenticar las peticiones.
+  // Todas las peticiones pasan por el proxy del servidor.
+  // La API key privada se configura exclusivamente en el backend.
   const API_BASE = '/web-api/v1/anime';
+
+  const apiRequest = async (endpoint, params = {}) => {
+    const url = new URL(`${API_BASE}/${endpoint}`, window.location.origin);
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        url.searchParams.set(key, String(value));
+      }
+    });
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`API HTTP ${response.status}`);
+    }
+
+    return response.json();
+  };
+
+  // El image-proxy es público y no necesita API key.
+  const getImageUrl = (image) => {
+    if (!image) return '';
+
+    return `${API_BASE}/image-proxy?url=${encodeURIComponent(image)}`;
+  };
   
   const getHeaders = () => ({
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'x-api-key': API_KEY
   });
 
-   // --- NAVEGACIÓN Y CAMBIO DE PANTALLAS (SPA) ---
+  // --- NAVEGACIÓN Y CAMBIO DE PANTALLAS (SPA) ---
   function switchView(targetPanel) {
     if (targetPanel !== playerView) {
       stopVideoPlayer();
@@ -153,12 +183,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      let url = `/api/v1/anime/catalog?page=${catalogPage}`;
-      if (catalogGenre) url += `&genre=${encodeURIComponent(catalogGenre)}`;
+      const responseData = await apiRequest('catalog', {
+        page: catalogPage,
+        genre: catalogGenre || undefined
+      });
       
-      const res = await fetch(url, { headers: getHeaders() });
-      const responseData = await res.json();
-
       if (resetGrid) resultsGrid.innerHTML = '';
 
       if (responseData.success && responseData.data?.results?.length > 0) {
@@ -190,11 +219,10 @@ document.addEventListener('DOMContentLoaded', () => {
     appendGridSkeletons(4);
 
     try {
-      let url = `/api/v1/anime/catalog?page=${catalogPage}`;
-      if (catalogGenre) url += `&genre=${encodeURIComponent(catalogGenre)}`;
-      
-      const res = await fetch(url, { headers: getHeaders() });
-      const responseData = await res.json();
+      const responseData = await apiRequest('catalog', {
+        page: catalogPage,
+        genre: catalogGenre || undefined
+      });
 
       removeSkeletons();
 
@@ -231,10 +259,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       // No enviamos domain → el backend prueba TODOS los proveedores automáticamente
-      const res = await fetch(`/api/v1/anime/search?q=${encodeURIComponent(q)}`, {
-        headers: getHeaders()
+      const responseData = await apiRequest('search', {
+        q
       });
-      const responseData = await res.json();
 
       if (responseData.success && responseData.data?.results?.length > 0) {
         const providerLabel = responseData.source || 'Multi';
@@ -257,9 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
       card.className = 'anime-card';
       card.setAttribute('data-url', anime.url);
       
-      const imageUrl = anime.image 
-        ? `/api/v1/anime/image-proxy?url=${encodeURIComponent(anime.image)}&apiKey=${API_KEY}` 
-        : '';
+      const imageUrl = getImageUrl(anime.image);
 
       const imgTag = imageUrl
         ? `<img src="${imageUrl}" class="card-image" alt="${anime.title}" loading="lazy">`
@@ -344,9 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
     animeType.textContent = data.type || 'Serie';
     
     // Póster
-    const posterUrl = data.image 
-      ? `/api/v1/anime/image-proxy?url=${encodeURIComponent(data.image)}&apiKey=${API_KEY}` 
-      : '';
+    const posterUrl = getImageUrl(data.image);
     animePoster.style.backgroundImage = posterUrl ? `url('${posterUrl}')` : 'none';
     
     // Géneros
